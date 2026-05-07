@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Рейтинг игроков{% endblock %}
+{% block content %}
+<section class="panel">
+    <h1>Рейтинг игроков</h1>
+    <ol class="leaderboard wide">
+        {% for row in leaderboard %}
+            <li>
+                <span>{{ loop.index }}. {{ row.display_name }} (@{{ row.username }})</span>
+                <span>{{ row.wins }} побед · {{ row.losses }} поражений · {{ row.draws }} ничьих</span>
+                <strong>{{ row.rating }}</strong>
+            </li>
+        {% else %}
+            <li><span>Игроков пока нет.</span></li>
+        {% endfor %}
+    </ol>
+</section>
+{% endblock %}

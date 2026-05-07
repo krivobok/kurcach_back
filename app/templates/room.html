@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Комната {{ room.id }}{% endblock %}
+{% block content %}
+{% set status_text = {"waiting": "ожидает игроков", "playing": "идёт игра", "finished": "завершена", "closed": "закрыта"} %}
+{% set mode_text = {"public": "для двух игроков", "private": "закрытая", "ai": "с компьютером", "matchmaking": "подбор соперника"} %}
+{% set risk_text = {"winning": "есть победный ход", "danger": "нужно защищаться", "normal": "позиция спокойная", "finished": "партия завершена"} %}
+<section class="panel" id="room-content">
+    <div class="room-header">
+        <div>
+            <h1>{{ room.name }}</h1>
+            <p class="muted">Статус: {{ status_text.get(room.status, room.status) }} · режим: {{ mode_text.get(room.mode, room.mode) }} · поле {{ room.board_size }}x{{ room.board_size }}</p>
+        </div>
+        <a class="button secondary" href="{{ url_for('pages.index') }}">На главную</a>
+    </div>
+
+    <h2>Игроки</h2>
+    <ul class="list">
+        {% for player in room.players %}
+            <li>
+                <span>{{ player.symbol }} · {{ player.display_name }}</span>
+                <span>рейтинг {{ player.rating }}</span>
+            </li>
+        {% else %}
+            <li><span>Нет игроков</span></li>
+        {% endfor %}
+    </ul>
+
+    {% if user and room.status == "waiting" and room.mode != "ai" and not own_symbol %}
+        <form method="post" action="{{ url_for('pages.web_join_room', room_id=room.id) }}" class="spaced-form">
+            <button type="submit">Присоединиться к комнате</button>
+        </form>
+    {% endif %}
+
+    {% if room.game %}
+        <h2 id="game-board">Поле</h2>
+        <p class="muted">Ход: {{ room.game.current_turn }} · ваш знак: {{ own_symbol or "-" }}</p>
+        <div class="server-board" style="--size: {{ room.game.board_size }}">
+            {% for row in room.game.board %}
+                {% set row_index = loop.index0 %}
+                {% for cell in row %}
+                    {% set col_index = loop.index0 %}
+                    {% if user and own_symbol and room.game.status == "playing" and room.status == "playing" and room.game.current_turn == own_symbol and not cell %}
+                        <form method="post" action="{{ url_for('pages.web_make_move', game_id=room.game.id) }}" data-async-move="1">
+                            <input type="hidden" name="row" value="{{ row_index }}">
+                            <input type="hidden" name="col" value="{{ col_index }}">
+                            <button class="server-cell" type="submit"></button>
+                        </form>
+                    {% else %}
+                        <div class="server-cell">{{ cell }}</div>
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+        </div>
+
+        <div class="actions">
+            {% if user and own_symbol and room.game.status == "playing" and room.status == "playing" %}
+                <form method="post" action="{{ url_for('pages.web_hint', game_id=room.game.id) }}">
+                    <button type="submit" class="secondary">Подсказка</button>
+                </form>
+                <form method="post" action="{{ url_for('pages.web_surrender', game_id=room.game.id) }}">
+                    <button type="submit" class="danger">Сдаться</button>
+                </form>
+            {% endif %}
+            {% if user and own_symbol and room.game.status == "finished" and room.status == "finished" %}
+                <form method="post" action="{{ url_for('pages.web_rematch', room_id=room.id) }}">
+                    <button type="submit">Реванш</button>
+                </form>
+            {% endif %}
+        </div>
+
+        {% if analysis %}
+            <div class="analysis-box">
+                <h2>Серверный анализ позиции</h2>
+                <p>{{ analysis.recommendation }}</p>
+                <ul class="analysis-list">
+                    <li><span>Оценка</span><strong>{{ risk_text.get(analysis.risk_level, analysis.risk_level) }}</strong></li>
+                    <li><span>Свободных клеток</span><strong>{{ analysis.available_moves_count }}</strong></li>
+                    <li><span>Заполнено поля</span><strong>{{ analysis.progress_percent }}%</strong></li>
+                    {% if analysis.best_move %}
+                        <li><span>Лучший ход</span><strong>{{ analysis.best_move.row + 1 }}:{{ analysis.best_move.col + 1 }}</strong></li>
+                    {% endif %}
+                </ul>
+            </div>
+        {% endif %}
+    {% else %}
+        <p class="muted">Игра ещё не началась.</p>
+    {% endif %}
+</section>
+<script src="{{ url_for('static', filename='js/room.js') }}"></script>
+{% endblock %}

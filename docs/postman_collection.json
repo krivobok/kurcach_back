@@ -1,0 +1,2126 @@
+{
+  "info": {
+    "_postman_id": "7d5f90f0-ttt-course-project",
+    "name": "Крестики-нолики: серверные запросы",
+    "description": "Подробная коллекция запросов для серверной части проекта «Крестики-нолики». Коллекция покрывает регистрацию, авторизацию, комнаты, игру, чат, повтор партии, матчмейкинг, статистику, документацию запросов и административный аудит. Начните с раздела авторизации: регистрация или вход: тесты коллекции автоматически сохранят токен, user_id, room_id и game_id.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:5000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "username",
+      "value": "player_one",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "secret123",
+      "type": "string"
+    },
+    {
+      "key": "admin_code",
+      "value": "admin123",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "room_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "game_id",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test('Ответ сервера не содержит ошибку 5xx', function () {",
+          "    pm.expect(pm.response.code).to.be.below(500);",
+          "});",
+          "if (pm.response.headers.get('Content-Type') && pm.response.headers.get('Content-Type').includes('application/json')) {",
+          "    const json = pm.response.json();",
+          "    if (json && json.ok === false) { console.warn('API error:', json.error); }",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Система и документация",
+      "item": [
+        {
+          "name": "Проверка сервера",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/health"
+            },
+            "description": "Проверяет, что сервер запущен."
+          },
+          "response": []
+        },
+        {
+          "name": "Файл спецификации",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/openapi.json"
+            },
+            "description": "Спецификация серверных запросов."
+          },
+          "response": []
+        },
+        {
+          "name": "Коллекция запросов",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/postman.json"
+            },
+            "description": "Коллекция запросов, которую можно импортировать по URL."
+          },
+          "response": []
+        },
+        {
+          "name": "Окружение запросов",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/postman-environment.json"
+            },
+            "description": "Окружение с адресом сервера и переменными."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Авторизация",
+      "item": [
+        {
+          "name": "Регистрация клиента",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/register"
+            },
+            "description": "Создает пользователя и автоматически сохраняет токен и идентификатор пользователя в переменные запросов.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\",\n  \"display_name\": \"Игрок\",\n  \"email\": \"player@example.com\",\n  \"account_type\": \"client\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Ответ авторизации успешен', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.ok).to.eql(true);",
+                  "if (json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "    pm.environment.set('token', json.data.token);",
+                  "}",
+                  "if (json.data && json.data.user) {",
+                  "    pm.collectionVariables.set('user_id', String(json.data.user.id));",
+                  "    pm.environment.set('user_id', String(json.data.user.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Регистрация администратора",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/register"
+            },
+            "description": "Создает администратора. Нужен код администратора из переменных окружения сервера.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin_postman\",\n  \"password\": \"{{password}}\",\n  \"display_name\": \"Администратор\",\n  \"account_type\": \"admin\",\n  \"admin_code\": \"{{admin_code}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Ответ авторизации успешен', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.ok).to.eql(true);",
+                  "if (json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "    pm.environment.set('token', json.data.token);",
+                  "}",
+                  "if (json.data && json.data.user) {",
+                  "    pm.collectionVariables.set('user_id', String(json.data.user.id));",
+                  "    pm.environment.set('user_id', String(json.data.user.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Вход",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/login"
+            },
+            "description": "Входит в существующий аккаунт и сохраняет токен и идентификатор пользователя.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Ответ авторизации успешен', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.ok).to.eql(true);",
+                  "if (json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "    pm.environment.set('token', json.data.token);",
+                  "}",
+                  "if (json.data && json.data.user) {",
+                  "    pm.collectionVariables.set('user_id', String(json.data.user.id));",
+                  "    pm.environment.set('user_id', String(json.data.user.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Текущий пользователь",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me"
+            },
+            "description": "Возвращает текущий профиль по токен доступа."
+          },
+          "response": []
+        },
+        {
+          "name": "Update profile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me"
+            },
+            "description": "Обновляет публичные поля профиля.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"display_name\": \"Игрок из запросов\",\n  \"email\": \"updated@example.com\",\n  \"avatar_url\": \"https://example.com/avatar.png\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Выход",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout"
+            },
+            "description": "Отзывает текущий токен. После этого нужно снова выполнить вход."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Пользователи",
+      "item": [
+        {
+          "name": "Список пользователей",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users?limit=20&offset=0"
+            },
+            "description": "Список пользователей с пагинацией."
+          },
+          "response": []
+        },
+        {
+          "name": "Поиск пользователей",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users?q=player&limit=10"
+            },
+            "description": "Поиск пользователей по логину, имени или email."
+          },
+          "response": []
+        },
+        {
+          "name": "Карточка пользователя",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}"
+            },
+            "description": "Профиль, статистика и достижения выбранного пользователя."
+          },
+          "response": []
+        },
+        {
+          "name": "История партий пользователя",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}/games?limit=10"
+            },
+            "description": "История партий пользователя с результатом относительно выбранного игрока."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Комнаты",
+      "item": [
+        {
+          "name": "Список комнат",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/rooms?limit=30&offset=0"
+            },
+            "description": "Список комнат. Можно добавить фильтр по статусу комнаты."
+          },
+          "response": []
+        },
+        {
+          "name": "Создать игру с компьютером",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/rooms"
+            },
+            "description": "Создает комнату против компьютера и сразу стартует игру. Сохраняет идентификаторы комнаты и игры.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"запросов room\",\n  \"mode\": \"ai\",\n  \"board_size\": 3,\n  \"win_length\": 3,\n  \"symbol\": \"X\",\n  \"ready\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Ответ комнаты успешен', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.ok).to.eql(true);",
+                  "if (json.data && json.data.id) {",
+                  "    pm.collectionVariables.set('room_id', String(json.data.id));",
+                  "    pm.environment.set('room_id', String(json.data.id));",
+                  "}",
+                  "if (json.data && json.data.game && json.data.game.id) {",
+                  "    pm.collectionVariables.set('game_id', String(json.data.game.id));",
+                  "    pm.environment.set('game_id', String(json.data.game.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Создать комнату для двух игроков",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/rooms"
+            },
+            "description": "Создает комнату для двух игроков. Второй пользователь должен выполнить Join room.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"запросов public room\",\n  \"mode\": \"public\",\n  \"board_size\": 3,\n  \"win_length\": 3,\n  \"symbol\": \"X\",\n  \"ready\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Ответ комнаты успешен', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.ok).to.eql(true);",
+                  "if (json.data && json.data.id) {",
+                  "    pm.collectionVariables.set('room_id', String(json.data.id));",
+                  "    pm.environment.set('room_id', String(json.data.id));",
+                  "}",
+                  "if (json.data && json.data.game && json.data.game.id) {",
+                  "    pm.collectionVariables.set('game_id', String(json.data.game.id));",
+                  "    pm.environment.set('game_id', String(json.data.game.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Состояние комнаты",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/rooms/{{room_id}}"
+            },
+            "description": "Состояние комнаты, список игроков и текущая игра."
+          },
+          "response": []
+        },
+        {
+          "name": "Войти в комнату",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/rooms/{{room_id}}/join"
+            },
+            "description": "Присоединиться к комнате вторым игроком.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"symbol\": \"O\",\n  \"ready\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Ответ комнаты успешен', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.ok).to.eql(true);",
+                  "if (json.data && json.data.id) {",
+                  "    pm.collectionVariables.set('room_id', String(json.data.id));",
+                  "    pm.environment.set('room_id', String(json.data.id));",
+                  "}",
+                  "if (json.data && json.data.game && json.data.game.id) {",
+                  "    pm.collectionVariables.set('game_id', String(json.data.game.id));",
+                  "    pm.environment.set('game_id', String(json.data.game.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Покинуть комнату",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/rooms/{{room_id}}/leave"
+            },
+            "description": "Покинуть комнату. Если игра активна, это считается сдачей."
+          },
+          "response": []
+        },
+        {
+          "name": "Изменить готовность",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/rooms/{{room_id}}/ready"
+            },
+            "description": "Изменить готовность игрока.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ready\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Ответ комнаты успешен', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.ok).to.eql(true);",
+                  "if (json.data && json.data.id) {",
+                  "    pm.collectionVariables.set('room_id', String(json.data.id));",
+                  "    pm.environment.set('room_id', String(json.data.id));",
+                  "}",
+                  "if (json.data && json.data.game && json.data.game.id) {",
+                  "    pm.collectionVariables.set('game_id', String(json.data.game.id));",
+                  "    pm.environment.set('game_id', String(json.data.game.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Реванш",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/rooms/{{room_id}}/rematch"
+            },
+            "description": "Начать новую партию в той же комнате."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Ответ комнаты успешен', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.ok).to.eql(true);",
+                  "if (json.data && json.data.id) {",
+                  "    pm.collectionVariables.set('room_id', String(json.data.id));",
+                  "    pm.environment.set('room_id', String(json.data.id));",
+                  "}",
+                  "if (json.data && json.data.game && json.data.game.id) {",
+                  "    pm.collectionVariables.set('game_id', String(json.data.game.id));",
+                  "    pm.environment.set('game_id', String(json.data.game.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Чат",
+      "item": [
+        {
+          "name": "История чата",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/rooms/{{room_id}}/chat?limit=50"
+            },
+            "description": "Последние сообщения комнаты."
+          },
+          "response": []
+        },
+        {
+          "name": "Отправить сообщение",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/rooms/{{room_id}}/chat"
+            },
+            "description": "Отправляет сообщение от текущего игрока комнаты.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"Привет, хорошей игры!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Игры",
+      "item": [
+        {
+          "name": "Состояние игры",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/games/{{game_id}}"
+            },
+            "description": "Состояние игры, поле и доступные ходы."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Ответ игры успешен', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.ok).to.eql(true);",
+                  "const game = json.data && (json.data.game || json.data);",
+                  "if (game && game.id) {",
+                  "    pm.collectionVariables.set('game_id', String(game.id));",
+                  "    pm.environment.set('game_id', String(game.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ход 0,0",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/games/{{game_id}}/moves"
+            },
+            "description": "Сделать ход в левый верхний угол. В комнате с компьютером сервер сразу ответит ходом компьютера.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"row\": 0,\n  \"col\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Ответ игры успешен', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.ok).to.eql(true);",
+                  "const game = json.data && (json.data.game || json.data);",
+                  "if (game && game.id) {",
+                  "    pm.collectionVariables.set('game_id', String(game.id));",
+                  "    pm.environment.set('game_id', String(game.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ход 0,1",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/games/{{game_id}}/moves"
+            },
+            "description": "Второй пример хода.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"row\": 0,\n  \"col\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Ответ игры успешен', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.ok).to.eql(true);",
+                  "const game = json.data && (json.data.game || json.data);",
+                  "if (game && game.id) {",
+                  "    pm.collectionVariables.set('game_id', String(game.id));",
+                  "    pm.environment.set('game_id', String(game.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ход компьютера",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/games/{{game_id}}/ai-move"
+            },
+            "description": "Принудительный ход компьютера за текущий знак.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"difficulty\": \"hard\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Ответ игры успешен', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.ok).to.eql(true);",
+                  "const game = json.data && (json.data.game || json.data);",
+                  "if (game && game.id) {",
+                  "    pm.collectionVariables.set('game_id', String(game.id));",
+                  "    pm.environment.set('game_id', String(game.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Подсказка",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/games/{{game_id}}/hint?difficulty=hard"
+            },
+            "description": "Подсказка лучшего хода для текущего игрока."
+          },
+          "response": []
+        },
+        {
+          "name": "Анализ позиции",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/games/{{game_id}}/analysis?difficulty=hard"
+            },
+            "description": "Серверный анализ позиции: лучший ход, угрозы, потенциал линий и рекомендация."
+          },
+          "response": []
+        },
+        {
+          "name": "Сдаться",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/games/{{game_id}}/surrender"
+            },
+            "description": "Сдаться в текущей партии."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Ответ игры успешен', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.ok).to.eql(true);",
+                  "const game = json.data && (json.data.game || json.data);",
+                  "if (game && game.id) {",
+                  "    pm.collectionVariables.set('game_id', String(game.id));",
+                  "    pm.environment.set('game_id', String(game.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Повтор партии",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/games/{{game_id}}/повтор партии"
+            },
+            "description": "Все состояния поля после каждого хода и события игры."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Подбор соперника",
+      "item": [
+        {
+          "name": "Встать в очередь подбора",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/matchmaking"
+            },
+            "description": "Поставить пользователя в очередь автоматического подбора.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"board_size\": 3,\n  \"win_length\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Отменить подбор",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/matchmaking"
+            },
+            "description": "Отменить активную очередь матчмейкинга."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Статистика",
+      "item": [
+        {
+          "name": "Рейтинг игроков",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/leaderboard?limit=20"
+            },
+            "description": "Рейтинг игроков."
+          },
+          "response": []
+        },
+        {
+          "name": "Моя статистика",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/stats/me"
+            },
+            "description": "Профиль, статистика и достижения текущего пользователя."
+          },
+          "response": []
+        },
+        {
+          "name": "Каталог достижений",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/stats/achievements"
+            },
+            "description": "Каталог всех достижений и количество получивших."
+          },
+          "response": []
+        },
+        {
+          "name": "Общая сводка",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/stats/summary"
+            },
+            "description": "Общая статистика комнат и игр."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Администрирование",
+      "item": [
+        {
+          "name": "Сводка администратора",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/dashboard"
+            },
+            "description": "Сводка: пользователи, комнаты, игры, последние действия."
+          },
+          "response": []
+        },
+        {
+          "name": "Пользователи для администратора",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users?limit=100"
+            },
+            "description": "Список пользователей, роли, статусы и краткая статистика."
+          },
+          "response": []
+        },
+        {
+          "name": "Карточка пользователя для администратора",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/{{user_id}}"
+            },
+            "description": "Подробная карточка пользователя."
+          },
+          "response": []
+        },
+        {
+          "name": "Выдать права администратора",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/{{user_id}}/role"
+            },
+            "description": "Выдать роль администратора.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_admin\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Забрать права администратора",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/{{user_id}}/role"
+            },
+            "description": "Забрать роль администратора.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_admin\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Заблокировать пользователя",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/{{user_id}}/status"
+            },
+            "description": "Заблокировать пользователя и отозвать его токены.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"banned\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Разблокировать пользователя",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/{{user_id}}/status"
+            },
+            "description": "Разблокировать пользователя.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"offline\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Отозвать токены пользователя",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/{{user_id}}/tokens/revoke"
+            },
+            "description": "Отозвать все активные токены пользователя."
+          },
+          "response": []
+        },
+        {
+          "name": "Удалить пользователя",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users/{{user_id}}"
+            },
+            "description": "Удалить пользователя. Нельзя удалить самого себя."
+          },
+          "response": []
+        },
+        {
+          "name": "Комнаты для администратора",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/rooms?limit=100"
+            },
+            "description": "Админский список комнат, включая закрытые комнаты."
+          },
+          "response": []
+        },
+        {
+          "name": "Завершить комнату",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/rooms/{{room_id}}/status"
+            },
+            "description": "Завершить комнату. Активная игра будет остановлена.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"finished\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Закрыть комнату",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/rooms/{{room_id}}/status"
+            },
+            "description": "Закрыть комнату администратором. Новые входы, ходы и реванши будут заблокированы.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"closed\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Удалить комнату",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/rooms/{{room_id}}"
+            },
+            "description": "Удалить комнату, связанную игру, ходы и чат. Старые ссылки после этого возвращают 404."
+          },
+          "response": []
+        },
+        {
+          "name": "Журнал действий",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/admin/audit?limit=100"
+            },
+            "description": "Журнал действий. Нужен пользователь с is_admin=true."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Типовые сценарии",
+      "item": [
+        {
+          "name": "1. Регистрация или вход",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/register"
+            },
+            "description": "Первый шаг сценария: создать пользователя и сохранить token. Если пользователь уже есть, выполните раздел авторизации: вход.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\",\n  \"display_name\": \"Игрок сценария\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Ответ авторизации успешен', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.ok).to.eql(true);",
+                  "if (json.data && json.data.token) {",
+                  "    pm.collectionVariables.set('token', json.data.token);",
+                  "    pm.environment.set('token', json.data.token);",
+                  "}",
+                  "if (json.data && json.data.user) {",
+                  "    pm.collectionVariables.set('user_id', String(json.data.user.id));",
+                  "    pm.environment.set('user_id', String(json.data.user.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "2. Создать игру с компьютером",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/rooms"
+            },
+            "description": "Создать комнату с компьютером, чтобы сразу получить идентификатор игры.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Сценарий: комната\",\n  \"mode\": \"ai\",\n  \"board_size\": 3,\n  \"win_length\": 3,\n  \"symbol\": \"X\",\n  \"ready\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Ответ комнаты успешен', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.ok).to.eql(true);",
+                  "if (json.data && json.data.id) {",
+                  "    pm.collectionVariables.set('room_id', String(json.data.id));",
+                  "    pm.environment.set('room_id', String(json.data.id));",
+                  "}",
+                  "if (json.data && json.data.game && json.data.game.id) {",
+                  "    pm.collectionVariables.set('game_id', String(json.data.game.id));",
+                  "    pm.environment.set('game_id', String(json.data.game.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "3. Первый ход",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/games/{{game_id}}/moves"
+            },
+            "description": "Сделать первый ход через запрос.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"row\": 0,\n  \"col\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Ответ игры успешен', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.ok).to.eql(true);",
+                  "const game = json.data && (json.data.game || json.data);",
+                  "if (game && game.id) {",
+                  "    pm.collectionVariables.set('game_id', String(game.id));",
+                  "    pm.environment.set('game_id', String(game.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "4. Текущее состояние игры",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/games/{{game_id}}"
+            },
+            "description": "Посмотреть поле после ходов игрока и компьютера."
+          },
+          "response": [],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Ответ игры успешен', function () { pm.expect(pm.response.code).to.be.oneOf([200, 201]); });",
+                  "const json = pm.response.json();",
+                  "pm.expect(json.ok).to.eql(true);",
+                  "const game = json.data && (json.data.game || json.data);",
+                  "if (game && game.id) {",
+                  "    pm.collectionVariables.set('game_id', String(game.id));",
+                  "    pm.environment.set('game_id', String(game.id));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "5. Повтор партии",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/games/{{game_id}}/повтор партии"
+            },
+            "description": "Посмотреть историю партии."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

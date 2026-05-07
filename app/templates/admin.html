@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Админ-панель{% endblock %}
+{% block content %}
+{% set status_text = {"online": "онлайн", "offline": "офлайн", "banned": "заблокирован", "waiting": "ожидает игроков", "playing": "идёт игра", "finished": "завершена", "closed": "закрыта"} %}
+{% set role_text = {"client": "клиент", "admin": "администратор"} %}
+{% set mode_text = {"public": "для двух игроков", "private": "закрытая", "ai": "с компьютером", "matchmaking": "подбор соперника"} %}
+{% set action_text = {"register": "Регистрация", "login": "Вход", "logout": "Выход", "update_profile": "Обновление профиля", "create_room": "Создание комнаты", "join_room": "Вход в комнату", "leave_room": "Выход из комнаты", "surrender": "Сдача партии", "rematch": "Реванш", "admin_set_role": "Изменение роли", "admin_set_status": "Изменение статуса пользователя", "admin_revoke_tokens": "Отзыв токенов", "admin_delete_user": "Удаление пользователя", "admin_set_room_status": "Изменение статуса комнаты", "admin_delete_room": "Удаление комнаты"} %}
+{% set entity_text = {"user": "пользователь", "room": "комната", "game": "игра"} %}
+<section class="admin-layout">
+    <section class="panel">
+        <h1>Админ-панель</h1>
+        {% if user and user.is_admin %}
+            <p class="muted">Вы вошли как администратор: {{ user.display_name }}</p>
+            <form method="post" action="{{ url_for('pages.web_logout') }}">
+                <button type="submit" class="ghost">Выйти</button>
+            </form>
+        {% else %}
+            <p class="muted">Войдите под администратором или создайте администратора по коду.</p>
+            <div class="auth-columns">
+                <form method="post" action="{{ url_for('pages.web_login') }}" class="panel compact nested">
+                    <h2>Вход</h2>
+                    <label>Логин <input name="username" value="admin"></label>
+                    <label>Пароль <input name="password" type="password" value="secret123"></label>
+                    <button type="submit">Войти</button>
+                </form>
+                <form method="post" action="{{ url_for('pages.web_register') }}" class="panel compact nested">
+                    <h2>Создать администратора</h2>
+                    <label>Логин <input name="username" value="admin"></label>
+                    <label>Пароль <input name="password" type="password" value="secret123"></label>
+                    <label>Код администратора <input name="admin_code" value="admin123"></label>
+                    <input type="hidden" name="account_type" value="admin">
+                    <input type="hidden" name="display_name" value="Администратор">
+                    <button type="submit" class="secondary">Создать</button>
+                </form>
+            </div>
+        {% endif %}
+    </section>
+
+    {% if user and user.is_admin %}
+        <section class="admin-cards">
+            <div class="metric"><span>Пользователи</span><strong>{{ dashboard.users_total }}</strong></div>
+            <div class="metric"><span>Комнаты</span><strong>{{ dashboard.rooms_total }}</strong></div>
+            <div class="metric"><span>Идут игры</span><strong>{{ dashboard.games_playing }}</strong></div>
+            <div class="metric"><span>Завершено игр</span><strong>{{ dashboard.games_finished }}</strong></div>
+        </section>
+
+        <section class="panel">
+            <h2>Пользователи</h2>
+            <div class="admin-table">
+                {% for item in users %}
+                    <div class="admin-row">
+                        <div>
+                            <strong>{{ item.display_name }}</strong>
+                            <span>@{{ item.username }} · {{ role_text.get(item.role, item.role) }} · {{ status_text.get(item.status, item.status) }} · рейтинг {{ item.rating }}</span>
+                        </div>
+                        <div class="admin-actions">
+                            <form method="post" action="{{ url_for('pages.web_admin_role', user_id=item.id) }}">
+                                <input type="hidden" name="is_admin" value="{{ 0 if item.is_admin else 1 }}">
+                                <button type="submit" class="small secondary">{{ "Сделать клиентом" if item.is_admin else "Сделать администратором" }}</button>
+                            </form>
+                            <form method="post" action="{{ url_for('pages.web_admin_status', user_id=item.id) }}">
+                                <input type="hidden" name="status" value="{{ 'offline' if item.status == 'banned' else 'banned' }}">
+                                <button type="submit" class="small danger">{{ "Разблокировать" if item.status == "banned" else "Заблокировать" }}</button>
+                            </form>
+                            <form method="post" action="{{ url_for('pages.web_admin_revoke_tokens', user_id=item.id) }}">
+                                <button type="submit" class="small ghost">Отозвать токены</button>
+                            </form>
+                            <form method="post" action="{{ url_for('pages.web_admin_delete_user', user_id=item.id) }}">
+                                <button type="submit" class="small danger">Удалить</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Комнаты</h2>
+            <div class="admin-table">
+                {% for room in rooms %}
+                    <div class="admin-row">
+                        <div>
+                            <strong>{{ room.name }}</strong>
+                            <span>{{ mode_text.get(room.mode, room.mode) }} · {{ status_text.get(room.status, room.status) }} · {{ room.board_size }}x{{ room.board_size }} · игроков {{ room.players|length }}</span>
+                        </div>
+                        <div class="admin-actions">
+                            <form method="post" action="{{ url_for('pages.web_admin_room_status', room_id=room.id) }}">
+                                <input type="hidden" name="status" value="finished">
+                                <button type="submit" class="small ghost">Завершить</button>
+                            </form>
+                            <form method="post" action="{{ url_for('pages.web_admin_room_status', room_id=room.id) }}">
+                                <input type="hidden" name="status" value="closed">
+                                <button type="submit" class="small danger">Закрыть</button>
+                            </form>
+                            <form method="post" action="{{ url_for('pages.web_admin_delete_room', room_id=room.id) }}">
+                                <button type="submit" class="small danger">Удалить комнату</button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2>Журнал действий</h2>
+            <div class="admin-table">
+                {% for entry in audit %}
+                    <div class="admin-row">
+                        <div>
+                            <strong>{{ action_text.get(entry.action, entry.action) }}</strong>
+                            <span>{{ entity_text.get(entry.entity_type, entry.entity_type) }} #{{ entry.entity_id or "-" }} · автор #{{ entry.actor_id or "-" }} · {{ entry.created_at }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Крестики-нолики{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" href="{{ url_for('pages.index') }}">Крестики-нолики</a>
+        <nav>
+            <a href="{{ url_for('pages.index') }}">Играть</a>
+            <a href="{{ url_for('pages.leaderboard') }}">Рейтинг</a>
+            <a href="{{ url_for('pages.admin') }}">Админ-панель</a>
+            <a href="{{ url_for('docs.swagger_ui') }}">Документация</a>
+            <a href="{{ url_for('pages.demo') }}">Проверка запросов</a>
+        </nav>
+    </header>
+    <main class="page">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <section class="flash-list">
+                    {% for category, message in messages %}
+                        <div class="message {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </section>
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

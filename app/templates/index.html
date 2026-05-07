@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Играть в крестики-нолики{% endblock %}
+{% block content %}
+{% set status_text = {"waiting": "ожидает игроков", "playing": "идёт игра", "finished": "завершена", "closed": "закрыта"} %}
+{% set mode_text = {"public": "для двух игроков", "private": "закрытая", "ai": "с компьютером", "matchmaking": "подбор соперника"} %}
+<section class="simple-grid">
+    <section class="panel">
+        <h1>Крестики-нолики</h1>
+        <p class="muted">Серверная версия: все действия выполняются через обычные HTML-формы и сервер.</p>
+
+        {% if user %}
+            <div class="profile-card">
+                <h2>Профиль</h2>
+                <strong>{{ user.display_name }}</strong>
+                <span>Логин: {{ user.username }}</span>
+                <span>Рейтинг: {{ user.rating }}</span>
+                <span>Роль: {{ "администратор" if user.is_admin else "клиент" }}</span>
+            </div>
+            <div class="actions">
+                <form method="post" action="{{ url_for('pages.web_create_ai_room') }}">
+                    <button type="submit">Играть с компьютером</button>
+                </form>
+                <form method="post" action="{{ url_for('pages.web_create_public_room') }}" class="inline-form">
+                    <input name="name" value="Комната {{ user.display_name }}">
+                    <button type="submit" class="secondary">Комната для друга</button>
+                </form>
+                {% if user.is_admin %}
+                    <a class="button secondary" href="{{ url_for('pages.admin') }}">Админ-панель</a>
+                {% endif %}
+                <form method="post" action="{{ url_for('pages.web_logout') }}">
+                    <button type="submit" class="ghost">Выйти</button>
+                </form>
+            </div>
+        {% else %}
+            <div class="auth-columns">
+                <form method="post" action="{{ url_for('pages.web_login') }}" class="panel compact nested">
+                    <h2>Вход</h2>
+                    <label>Логин
+                        <input name="username" value="player_one" autocomplete="username">
+                    </label>
+                    <label>Пароль
+                        <input name="password" type="password" value="secret123" autocomplete="current-password">
+                    </label>
+                    <button type="submit">Войти</button>
+                </form>
+
+                <form method="post" action="{{ url_for('pages.web_register') }}" class="panel compact nested">
+                    <h2>Регистрация</h2>
+                    <label>Логин
+                        <input name="username" value="player_one" autocomplete="username">
+                    </label>
+                    <label>Имя на сайте
+                        <input name="display_name" value="Игрок">
+                    </label>
+                    <label>Пароль
+                        <input name="password" type="password" value="secret123">
+                    </label>
+                    <label>Тип аккаунта
+                        <select name="account_type">
+                            <option value="client">Клиент</option>
+                            <option value="admin">Администратор</option>
+                        </select>
+                    </label>
+                    <label>Код администратора
+                        <input name="admin_code" placeholder="Только для администратора">
+                    </label>
+                    <button type="submit" class="secondary">Зарегистрироваться</button>
+                </form>
+            </div>
+        {% endif %}
+    </section>
+
+    <aside class="side-panel">
+        <section class="panel compact">
+            <h2>Комнаты</h2>
+            <ul class="room-list">
+                {% for room in rooms %}
+                    <li class="room-item">
+                        <header>
+                            <strong>{{ room.name }}</strong>
+                            <span class="muted">{{ status_text.get(room.status, room.status) }}</span>
+                        </header>
+                        <span class="muted">{{ mode_text.get(room.mode, room.mode) }} · {{ room.board_size }}x{{ room.board_size }}</span>
+                        <div class="room-actions">
+                            <a class="button small ghost" href="{{ url_for('pages.room', room_id=room.id) }}">Открыть</a>
+                            {% if user and room.status == "waiting" and room.mode != "ai" %}
+                                <form method="post" action="{{ url_for('pages.web_join_room', room_id=room.id) }}">
+                                    <button type="submit" class="small">Играть</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </li>
+                {% else %}
+                    <li class="muted">Комнат пока нет.</li>
+                {% endfor %}
+            </ul>
+        </section>
+
+        <section class="panel compact">
+            <h2>Рейтинг</h2>
+            <ol class="leaderboard">
+                {% for row in leaderboard %}
+                    <li><span>{{ row.display_name }}</span><strong>{{ row.rating }}</strong></li>
+                {% else %}
+                    <li>Игроков пока нет.</li>
+                {% endfor %}
+            </ol>
+        </section>
+    </aside>
+</section>
+{% endblock %}

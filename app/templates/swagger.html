@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Документация запросов{% endblock %}
+{% block content %}
+<section class="panel">
+    <h1>Документация запросов</h1>
+    <p class="muted">
+        Документация серверных запросов проекта. Для защищённых запросов нажмите кнопку авторизации и вставьте токен из
+        ответа /api/auth/register или /api/auth/login.
+    </p>
+    <div class="doc-links">
+        <a class="button" href="/api/openapi.json">Файл спецификации</a>
+        <a class="button secondary" href="/api/postman.json">Коллекция запросов</a>
+        <a class="button ghost-link" href="/api/postman-environment.json">Окружение запросов</a>
+    </div>
+</section>
+
+<section class="swagger-panel">
+    <div id="swagger-ui"></div>
+</section>
+
+<link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css">
+<script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"></script>
+<script>
+    window.addEventListener("load", () => {
+        SwaggerUIBundle({
+            url: "/api/openapi.json",
+            dom_id: "#swagger-ui",
+            deepLinking: true,
+            persistAuthorization: true,
+            displayRequestDuration: true,
+            tryItOutEnabled: true,
+            docExpansion: "none",
+        });
+    });
+</script>
+{% endblock %}

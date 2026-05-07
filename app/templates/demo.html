@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Проверка запросов{% endblock %}
+{% block content %}
+<section class="panel">
+    <h1>Проверка запросов</h1>
+    <p class="muted">Эта страница оставлена для проверки серверных ответов. Играть удобнее на главной странице.</p>
+    <div class="demo-grid">
+        <label>Логин <input id="username" value="player_one"></label>
+        <label>Пароль <input id="password" value="secret123" type="password"></label>
+        <label>Название комнаты <input id="roomName" value="Демо-комната"></label>
+        <label>Токен <input id="token" placeholder="Токен появится после входа"></label>
+    </div>
+    <div class="actions">
+        <button data-action="register">Регистрация</button>
+        <button data-action="login">Войти</button>
+        <button data-action="create-ai-room">Игра с компьютером</button>
+        <button data-action="leaderboard">Рейтинг</button>
+    </div>
+    <pre id="output" class="json">{ "готово": true }</pre>
+</section>
+<script src="{{ url_for('static', filename='js/demo.js') }}"></script>
+{% endblock %}
