@@ -304,6 +304,35 @@ button.server-cell:hover {
     padding-top: 12px;
 }
 
+.room-chat {
+    margin-top: 18px;
+    border-top: 1px solid var(--line);
+    padding-top: 12px;
+}
+
+.chat-messages {
+    display: grid;
+    gap: 8px;
+    margin: 10px 0 14px;
+}
+
+.chat-message {
+    border: 1px solid var(--line);
+    background: #ffffff;
+    padding: 10px;
+}
+
+.chat-message header,
+.chat-form {
+    display: grid;
+    gap: 6px;
+}
+
+.chat-message p {
+    margin: 6px 0 0;
+    overflow-wrap: anywhere;
+}
+
 .analysis-list {
     margin: 10px 0 0;
     padding: 0;

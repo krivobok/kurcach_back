@@ -85,6 +85,47 @@
     {% else %}
         <p class="muted">Игра ещё не началась.</p>
     {% endif %}
+
+    <section class="room-chat" id="room-chat">
+        <div class="section-row">
+            <h2>Чат комнаты</h2>
+            <span class="muted">{{ chat_messages|length }} сообщений</span>
+        </div>
+        <div class="chat-messages">
+            {% for message in chat_messages %}
+                <article class="chat-message">
+                    <header>
+                        <strong>
+                            {% set author = namespace(name="Игрок " ~ message.user_id) %}
+                            {% for player in room.players %}
+                                {% if player.user_id == message.user_id %}
+                                    {% set author.name = player.display_name %}
+                                {% endif %}
+                            {% endfor %}
+                            {{ author.name }}
+                        </strong>
+                        <span class="muted">{{ message.created_at }}</span>
+                    </header>
+                    <p>{{ message.body }}</p>
+                </article>
+            {% else %}
+                <p class="muted">Сообщений пока нет.</p>
+            {% endfor %}
+        </div>
+
+        {% if user and own_symbol %}
+            <form method="post" action="{{ url_for('pages.web_add_chat', room_id=room.id) }}" class="chat-form">
+                <label>Сообщение
+                    <input name="body" maxlength="500" required placeholder="Напишите сообщение">
+                </label>
+                <button type="submit">Отправить</button>
+            </form>
+        {% elif user %}
+            <p class="muted">Писать в чат могут только игроки этой комнаты.</p>
+        {% else %}
+            <p class="muted">Войдите в аккаунт, чтобы писать в чат комнаты.</p>
+        {% endif %}
+    </section>
 </section>
 <script src="{{ url_for('static', filename='js/room.js') }}"></script>
 {% endblock %}

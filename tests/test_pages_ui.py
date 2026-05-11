@@ -63,3 +63,25 @@ def test_web_move_returns_to_board_without_success_flash(client):
     assert "Ход принят" not in html
     assert "data-async-move" in html
     assert "room.js" in html
+
+
+def test_room_page_shows_chat_and_accepts_messages(client):
+    client.post(
+        "/web/register",
+        data={"username": "chat_ui_player", "display_name": "Чат Игрок", "password": "secret123", "account_type": "client"},
+        follow_redirects=True,
+    )
+    created = client.post("/web/rooms/ai", follow_redirects=False)
+    room_url = created.headers["Location"]
+
+    room_page = client.get(room_url).get_data(as_text=True)
+    assert "Чат комнаты" in room_page
+    assert "/chat" in room_page
+
+    posted = client.post(f"/web{room_url}/chat", data={"body": "Привет из комнаты"}, follow_redirects=False)
+
+    assert posted.status_code == 302
+    assert posted.headers["Location"].endswith("#room-chat")
+    html = client.get(posted.headers["Location"]).get_data(as_text=True)
+    assert "Привет из комнаты" in html
+    assert "Чат Игрок" in html

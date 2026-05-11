@@ -136,6 +136,7 @@ def room(room_id: int):
     service = GameService()
     try:
         room_state = service.room_state(room_id)
+        chat_messages = service.chat_history(room_id)
     except GameServiceError as exc:
         flash(str(exc), "error")
         return redirect(url_for("pages.index"))
@@ -146,7 +147,7 @@ def room(room_id: int):
                 own_symbol = player["symbol"]
                 break
     analysis = service.analyze_game(room_state["game"]["id"], user) if room_state.get("game") else None
-    return render_template("room.html", user=user, room=room_state, own_symbol=own_symbol, analysis=analysis)
+    return render_template("room.html", user=user, room=room_state, own_symbol=own_symbol, analysis=analysis, chat_messages=chat_messages)
 
 
 @pages_bp.post("/web/games/<int:game_id>/move")
@@ -201,6 +202,19 @@ def web_rematch(room_id: int):
     except GameServiceError as exc:
         flash(str(exc), "error")
     return redirect(url_for("pages.room", room_id=room_id))
+
+
+@pages_bp.post("/web/rooms/<int:room_id>/chat")
+def web_add_chat(room_id: int):
+    user = require_user()
+    if user is None:
+        return redirect(url_for("pages.index"))
+    try:
+        GameService().add_chat_message(user, room_id, request.form.get("body", ""))
+        flash("Сообщение отправлено.", "success")
+    except GameServiceError as exc:
+        flash(str(exc), "error")
+    return redirect(url_for("pages.room", room_id=room_id, _anchor="room-chat"))
 
 
 @pages_bp.get("/leaderboard")
